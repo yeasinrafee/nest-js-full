@@ -6,41 +6,54 @@ import {
   Put,
   Param,
   Delete,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import type { User } from './users.service';
-// import { CreateUserDto } from './dto/create-user.dto';
-// import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import type { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() body: { name: string; email: string }): User {
-    return this.usersService.create(body.name, body.email);
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() createUserDto: CreateUserDto): User {
+    return this.usersService.create(createUserDto);
   }
 
   @Get()
-  findAll(): User[] {
-    return this.usersService.findAll();
+  findAll(@Res() res: Response) {
+    const users = this.usersService.findAll();
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      count: users.length,
+      data: users,
+      message: 'Users retrieved successfully',
+    });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): User | undefined {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number): User | undefined {
+    return this.usersService.findOne(id);
   }
 
   @Put(':id')
   update(
-    @Param('id') id: string,
-    @Body() body: { name: string; email: string },
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
   ): User | undefined {
-    return this.usersService.update(+id, body.name, body.email);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): boolean {
-    return this.usersService.remove(+id);
+  @HttpCode(HttpStatus.OK)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 }
