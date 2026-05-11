@@ -1,52 +1,47 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  age?: number;
-  createdAt: Date;
-}
+import { PrismaService } from 'src/common/prisma/prisma.service';
+import { Prisma, User } from 'src/generated/prisma/client';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    {
-      id: 1,
-      name: 'Yeasin',
-      email: 'yeasin@gmail.com',
-      age: 23,
-      createdAt: new Date(),
-    },
-    {
-      id: 2,
-      name: 'Rafee',
-      email: 'rafee@gmail.com',
-      age: 25,
-      createdAt: new Date(),
-    },
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  private nextId = 3;
-
-  create(createUserDto: CreateUserDto): User {
-    const newUser: User = {
-      id: this.nextId++,
-      ...createUserDto,
-      createdAt: new Date(),
-    };
-    this.users.push(newUser);
-    return newUser;
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    try {
+      return await this.prisma.user.create({
+        data: createUserDto,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'This email is already in use. Please choose another one.',
+          );
+        }
+      }
+      throw error;
+    }
   }
 
-  findAll(): User[] {
-    return this.users;
+  async findAll(): Promise<User[]> {
+    return await this.prisma.user.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
-  findOne(id: number): User | undefined {
-    const user = this.users.find((u) => u.id === id);
+  async findOne(id: number): Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { posts: true },
+    });
 
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
@@ -54,21 +49,19 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto): User | undefined {
-    const user = this.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    Object.assign(user, updateUserDto);
-    return user;
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    await this.findOne(id);
+    return this.prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
   }
 
-  remove(id: number): { message: string } {
-    const index = this.users.findIndex((u) => u.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    this.users.splice(index, 1);
+  async remove(id: number): Promise<{ message: string }> {
+    await this.findOne(id);
+    await this.prisma.user.delete({
+      where: { id },
+    });
     return { message: `User with id ${id} removed` };
   }
 }
