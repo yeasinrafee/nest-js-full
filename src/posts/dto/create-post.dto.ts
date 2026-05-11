@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsInt,
   IsNotEmpty,
@@ -22,4 +23,9 @@ export class CreatePostDto {
   @IsNotEmpty({ message: 'Author ID is required' })
   @IsInt()
   authorId!: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
 }

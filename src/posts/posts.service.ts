@@ -10,6 +10,7 @@ export class PostsService {
 
   // Create a new post
   async create(createPostDto: CreatePostDto): Promise<Post> {
+    const { tags, ...postData } = createPostDto;
     const author = await this.prisma.user.findUnique({
       where: { id: createPostDto.authorId },
     });
@@ -19,9 +20,23 @@ export class PostsService {
     }
 
     return this.prisma.post.create({
-      data: createPostDto,
+      data: {
+        ...postData,
+        tags: {
+          // This maps your ["tag1", "tag2"] into the Prisma format
+          connectOrCreate: tags?.map((tag) => ({
+            where: {
+              name: tag,
+            },
+            create: {
+              name: tag,
+            },
+          })),
+        },
+      },
       include: {
         author: { select: { id: true, name: true } },
+        tags: true,
       },
     });
   }
@@ -31,6 +46,7 @@ export class PostsService {
     return await this.prisma.post.findMany({
       include: {
         author: { select: { id: true, name: true } },
+        tags: true,
       },
     });
   }
@@ -48,6 +64,7 @@ export class PostsService {
             name: true,
           },
         },
+        tags: true,
       },
     });
   }
@@ -58,6 +75,7 @@ export class PostsService {
       where: { id },
       include: {
         author: { select: { id: true, name: true, email: true } },
+        tags: true,
       },
     });
 
@@ -85,9 +103,32 @@ export class PostsService {
     // Search post, if not found throw an error
     await this.findOne(id);
 
+    const { tags, ...postData } = updatePostDto;
+
     return await this.prisma.post.update({
       where: { id },
-      data: updatePostDto,
+      data: {
+        ...postData,
+        tags: tags
+          ? {
+              // 'set: []' clears existing relations so it can replace them
+              // 'connectOrCreate' ensures we don't get errors for tags that already exist in the DB
+              set: [],
+              connectOrCreate: tags?.map((tag) => ({
+                where: { name: tag },
+                create: { name: tag },
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+          },
+        },
+        tags: true,
+      },
     });
   }
 
