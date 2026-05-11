@@ -35,22 +35,6 @@ export class PostsService {
     });
   }
 
-  // Retrieve a single post by ID
-  async findOne(id: number): Promise<Post> {
-    const post = await this.prisma.post.findUnique({
-      where: { id },
-      include: {
-        author: { select: { id: true, name: true, email: true } },
-      },
-    });
-
-    if (!post) {
-      throw new NotFoundException('Post not found!');
-    }
-
-    return post;
-  }
-
   // Retrieve published post Only
   async findPublished(): Promise<Post[]> {
     return await this.prisma.post.findMany({
@@ -66,6 +50,22 @@ export class PostsService {
         },
       },
     });
+  }
+
+  // Retrieve a single post by ID
+  async findOne(id: number): Promise<Post> {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      include: {
+        author: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found!');
+    }
+
+    return post;
   }
 
   // Post published/unpublished
