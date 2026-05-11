@@ -33,6 +33,7 @@ export class UsersService {
   // Retrieve all the users
   async findAll(search?: string): Promise<User[]> {
     return await this.prisma.user.findMany({
+      // Searching implemented
       where: search
         ? {
             OR: [
@@ -42,7 +43,7 @@ export class UsersService {
           }
         : undefined,
       include: {
-        _count: { select: { posts: true } },
+        _count: { select: { posts: true } }, // Count all post
       },
       orderBy: {
         createdAt: 'desc',

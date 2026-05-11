@@ -47,7 +47,17 @@ export class PostsService {
       // searching by title
       where: search
         ? {
-            OR: [{ title: { contains: search, mode: 'insensitive' } }],
+            OR: [
+              { title: { contains: search, mode: 'insensitive' } },
+              { content: { contains: search, mode: 'insensitive' } },
+              {
+                tags: {
+                  some: {
+                    name: { contains: search, mode: 'insensitive' },
+                  },
+                },
+              },
+            ],
           }
         : undefined,
       include: {
@@ -58,10 +68,25 @@ export class PostsService {
   }
 
   // Retrieve published post Only
-  async findPublished(): Promise<Post[]> {
+  async findPublished(search?: string): Promise<Post[]> {
     return await this.prisma.post.findMany({
       where: {
         published: true,
+        ...(search
+          ? {
+              OR: [
+                { title: { contains: search, mode: 'insensitive' } },
+                { content: { contains: search, mode: 'insensitive' } },
+                {
+                  tags: {
+                    some: {
+                      name: { contains: search, mode: 'insensitive' },
+                    },
+                  },
+                },
+              ],
+            }
+          : undefined),
       },
       include: {
         author: {
