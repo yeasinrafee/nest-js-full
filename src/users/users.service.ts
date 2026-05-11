@@ -12,6 +12,7 @@ import { Prisma, User } from 'src/generated/prisma/client';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create an user
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       return await this.prisma.user.create({
@@ -29,6 +30,7 @@ export class UsersService {
     }
   }
 
+  // Retrieve all the users
   async findAll(): Promise<User[]> {
     return await this.prisma.user.findMany({
       orderBy: {
@@ -37,6 +39,7 @@ export class UsersService {
     });
   }
 
+  // Retrieve a single user
   async findOne(id: number): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -49,16 +52,22 @@ export class UsersService {
     return user;
   }
 
+  // Update an user
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    // Search user, if not found throw an error
     await this.findOne(id);
+
     return this.prisma.user.update({
       where: { id },
       data: updateUserDto,
     });
   }
 
+  // Delete an user
   async remove(id: number): Promise<{ message: string }> {
+    // Search user, if not found throw an error
     await this.findOne(id);
+
     await this.prisma.user.delete({
       where: { id },
     });
