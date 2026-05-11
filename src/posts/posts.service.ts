@@ -42,8 +42,14 @@ export class PostsService {
   }
 
   // Retrieve all posts
-  async findAll(): Promise<Post[]> {
+  async findAll(search?: string): Promise<Post[]> {
     return await this.prisma.post.findMany({
+      // searching by title
+      where: search
+        ? {
+            OR: [{ title: { contains: search, mode: 'insensitive' } }],
+          }
+        : undefined,
       include: {
         author: { select: { id: true, name: true } },
         tags: true,

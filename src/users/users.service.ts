@@ -31,8 +31,19 @@ export class UsersService {
   }
 
   // Retrieve all the users
-  async findAll(): Promise<User[]> {
+  async findAll(search?: string): Promise<User[]> {
     return await this.prisma.user.findMany({
+      where: search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : undefined,
+      include: {
+        _count: { select: { posts: true } },
+      },
       orderBy: {
         createdAt: 'desc',
       },

@@ -8,6 +8,7 @@ import {
   Put,
   Patch,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -24,8 +25,8 @@ export class PostsController {
   }
 
   @Get()
-  async findAll(): Promise<Posts[]> {
-    return await this.postsService.findAll();
+  async findAll(@Query('search') search?: string): Promise<Posts[]> {
+    return await this.postsService.findAll(search);
   }
 
   @Get('published')

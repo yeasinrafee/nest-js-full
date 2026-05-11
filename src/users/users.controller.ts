@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -28,8 +29,8 @@ export class UsersController {
   }
 
   @Get()
-  async findAll(@Res() res: Response) {
-    const users = await this.usersService.findAll();
+  async findAll(@Res() res: Response, @Query('search') search?: string) {
+    const users = await this.usersService.findAll(search);
     return res.status(HttpStatus.OK).json({
       success: true,
       data: users,
