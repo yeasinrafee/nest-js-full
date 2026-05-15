@@ -51,6 +51,31 @@ export class UsersService {
     });
   }
 
+  // Retrieve all users with pagination
+  async findPaginated(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.user.count(),
+    ]);
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
   // Retrieve a single user
   async findOne(id: number): Promise<User> {
     const user = await this.prisma.user.findUnique({

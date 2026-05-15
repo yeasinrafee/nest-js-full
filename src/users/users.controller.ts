@@ -29,8 +29,21 @@ export class UsersController {
   }
 
   @Get()
-  async findAll(@Res() res: Response, @Query('search') search?: string) {
+  async findAll(
+    @Res() res: Response,
+    @Query('search') search?: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ) {
     const users = await this.usersService.findAll(search);
+
+    if (page) {
+      const paginatedData = await this.usersService.findPaginated(
+        page,
+        limit ?? 10,
+      );
+      return res.status(HttpStatus.OK).json(paginatedData);
+    }
     return res.status(HttpStatus.OK).json({
       success: true,
       data: users,

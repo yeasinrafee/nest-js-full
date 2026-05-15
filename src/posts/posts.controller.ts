@@ -25,7 +25,15 @@ export class PostsController {
   }
 
   @Get()
-  async findAll(@Query('search') search?: string): Promise<Posts[]> {
+  async findAll(
+    // For searching, paginating and limit
+    @Query('search') search?: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ) {
+    if (page) {
+      return this.postsService.findPaginated(page, limit ?? 10);
+    }
     return await this.postsService.findAll(search);
   }
 

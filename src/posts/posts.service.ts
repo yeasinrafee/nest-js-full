@@ -100,6 +100,32 @@ export class PostsService {
     });
   }
 
+  // Find with Pagination
+  async findPaginated(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [posts, total] = await this.prisma.$transaction([
+      this.prisma.post.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.post.count(),
+    ]);
+
+    return {
+      data: posts,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   // Retrieve a single post by ID
   async findOne(id: number): Promise<Post> {
     const post = await this.prisma.post.findUnique({
