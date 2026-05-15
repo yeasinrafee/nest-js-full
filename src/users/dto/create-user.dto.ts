@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsEmail,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -10,6 +11,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { Role } from 'src/generated/prisma/enums';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Name is required' })
@@ -22,9 +24,19 @@ export class CreateUserDto {
   @IsEmail({}, { message: 'email must be a valid email address' })
   email!: string;
 
+  // 1. Password Field (Required)
+  @IsNotEmpty({ message: 'Password is required' })
+  @IsString({ message: 'Password must be a string' })
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  password!: string;
+
   @IsOptional()
   @IsInt({ message: 'age must be an integer' })
   @Min(1, { message: 'Age must be at least 1' })
   @Max(120, { message: 'Age must be at most 120' })
   age?: number;
+
+  @IsOptional()
+  @IsEnum(Role, { message: 'Role must be a valid role type (USER or ADMIN)' })
+  role?: Role;
 }
