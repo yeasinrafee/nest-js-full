@@ -19,6 +19,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import type { Response } from 'express';
 import { User } from 'src/generated/prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Role, Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -69,6 +70,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   async remove(
     @Param('id', ParseIntPipe) id: number,
