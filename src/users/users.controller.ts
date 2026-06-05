@@ -20,6 +20,7 @@ import type { Response } from 'express';
 import { User } from 'src/generated/prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Role, Roles } from 'src/common/decorators/roles.decorator';
+import { ParsePositiveIntPipe } from 'src/common/pipes/parse-positive-int.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -63,7 +64,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParsePositiveIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     return await this.usersService.update(id, updateUserDto);
